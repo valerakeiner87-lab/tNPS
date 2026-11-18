@@ -444,6 +444,10 @@ export interface RegistroHorasRobot {
   horasAPagar: number;
   /** Horas facturables en segundos (columna Horas fact) */
   horasFact: number;
+  /** Inicio programado ISO datetime (columna Start_Date) */
+  startDate: string | null;
+  /** Fin programado ISO datetime (columna End_Date) */
+  endDate: string | null;
   /** Entrada real ISO datetime (columna Entrada_Real) */
   entradaReal: string | null;
   /** Salida real ISO datetime (columna Salida_Real) */
@@ -454,6 +458,16 @@ export interface RegistroHorasRobot {
   faltante: number;
   /** Exceso si horas a pagar > program_time (en segundos) */
   exceso: number;
+  /** v3.4.6: Auxiliares (en segundos) desde Horas Genesys */
+  disponible: number;
+  enCola: number;
+  capacitacion: number;
+  comida: number;
+  descanso: number;
+  reunion: number;
+  inactivo: number;
+  ausente: number;
+  ocupado: number;
 }
 
 /** Snapshot de Horas Robot */

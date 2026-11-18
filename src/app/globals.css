@@ -245,6 +245,307 @@
   animation: fluir 1.4s linear infinite;
 }
 
+/* ============================================================
+   v3.4.4 — Animaciones de gradientes para tarjetas
+   ============================================================ */
+
+/* Gradiente animado "Aurora" — tonos azul → rojo Claro (light) */
+@keyframes gradiente-aurora {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animar-gradiente-aurora {
+  background: linear-gradient(120deg, #DA291C, #1A3F7A, #122B52, #DA291C);
+  background-size: 300% 300%;
+  animation: gradiente-aurora 8s ease-in-out infinite;
+}
+
+/* Gradiente animado "Sunset" — tonos cálidos (naranja → rojo → magenta) */
+@keyframes gradiente-sunset {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animar-gradiente-sunset {
+  background: linear-gradient(135deg, #F59E0B, #DA291C, #EC4899, #F59E0B);
+  background-size: 300% 300%;
+  animation: gradiente-sunset 7s ease-in-out infinite;
+}
+
+/* Gradiente animado "Ocean" — tonos fríos (azul → cian → teal) */
+@keyframes gradiente-ocean {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animar-gradiente-ocean {
+  background: linear-gradient(135deg, #1A3F7A, #06B6D4, #14B8A6, #1A3F7A);
+  background-size: 300% 300%;
+  animation: gradiente-ocean 9s ease-in-out infinite;
+}
+
+/* Gradiente animado "Promotor" — verde → esmeralda → lima */
+@keyframes gradiente-promotor {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animar-gradiente-promotor {
+  background: linear-gradient(135deg, #16A34A, #10B981, #84CC16, #16A34A);
+  background-size: 300% 300%;
+  animation: gradiente-promotor 8s ease-in-out infinite;
+}
+
+/* Gradiente animado "Pasivo" — ámbar → naranja → amarillo */
+@keyframes gradiente-pasivo {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animar-gradiente-pasivo {
+  background: linear-gradient(135deg, #F59E0B, #F97316, #FACC15, #F59E0B);
+  background-size: 300% 300%;
+  animation: gradiente-pasivo 7s ease-in-out infinite;
+}
+
+/* Gradiente animado "Detractor" — rojo → magenta → rosa */
+@keyframes gradiente-detractor {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animar-gradiente-detractor {
+  background: linear-gradient(135deg, #DC2626, #EC4899, #F43F5E, #DC2626);
+  background-size: 300% 300%;
+  animation: gradiente-detractor 8s ease-in-out infinite;
+}
+
+/* Gradiente animado "Claro" — paleta corporativa (rojo → navy → azul) */
+@keyframes gradiente-claro {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animar-gradiente-claro {
+  background: linear-gradient(135deg, #DA291C, #1A3F7A, #122B52, #DA291C);
+  background-size: 300% 300%;
+  animation: gradiente-claro 10s ease-in-out infinite;
+}
+
+/* Borde con gradiente animado (ring que gira) */
+@keyframes borde-gradiente-giro {
+  0% { --border-angle: 0deg; }
+  100% { --border-angle: 360deg; }
+}
+.animar-borde-gradiente {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.animar-borde-gradiente::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--border-angle, 0deg),
+    #DA291C, #F59E0B, #16A34A, #1A3F7A, #DA291C
+  );
+  animation: borde-gradiente-giro 6s linear infinite;
+}
+
+/* Brillo que pasa por encima (shimmer) */
+@keyframes brillo-pasar {
+  0% { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(200%) skewX(-15deg); }
+}
+.animar-brillo {
+  position: relative;
+  overflow: hidden;
+}
+.animar-brillo::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.18),
+    transparent
+  );
+  animation: brillo-pasar 4.5s ease-in-out infinite;
+  animation-delay: 1s;
+  pointer-events: none;
+}
+
+/* Tarjeta con gradiente animado de fondo + texto blanco por defecto */
+.tarjeta-gradiente {
+  color: white;
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+.tarjeta-gradiente::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.95;
+  border-radius: inherit;
+}
+.tarjeta-gradiente > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Respeto a usuarios con motion-reduced */
+@media (prefers-reduced-motion: reduce) {
+  .animar-gradiente-aurora,
+  .animar-gradiente-sunset,
+  .animar-gradiente-ocean,
+  .animar-gradiente-promotor,
+  .animar-gradiente-pasivo,
+  .animar-gradiente-detractor,
+  .animar-gradiente-claro,
+  .animar-borde-gradiente::before,
+  .animar-brillo::after,
+  .tarjeta-gradiente::before {
+    animation: none !important;
+  }
+}
+
+/* ============================================================
+   v3.4.7 — Mejoras de contraste para modo oscuro y paletas
+   ============================================================ */
+
+/* Tarjetas con mejor contraste en modo oscuro */
+.dark .border-l-4 {
+  border-left-width: 4px;
+  border-left-color: var(--primary);
+}
+
+/* Asegurar que el texto en tarjetas con gradiente sea legible */
+.dark .tarjeta-gradiente,
+.dark [class*="animar-gradiente"] {
+  color: #ffffff !important;
+}
+
+/* Gradientes que se adaptan al tema */
+.dark .animar-gradiente-claro {
+  background: linear-gradient(135deg, #DA291C, #1A3F7A, #0B1426, #DA291C);
+  background-size: 300% 300%;
+}
+
+.dark .animar-gradiente-aurora {
+  background: linear-gradient(120deg, #DA291C, #1A3F7A, #0B1426, #DA291C);
+  background-size: 300% 300%;
+}
+
+/* Tarjetas con fondo semi-transparente en dark mode para mejor contraste */
+.dark .card {
+  background-color: oklch(0.2 0.02 260);
+  border-color: oklch(0.3 0.02 260);
+}
+
+/* Texto más legible en dark mode */
+.dark .text-muted-foreground {
+  color: oklch(0.65 0.02 260);
+}
+
+/* Badges con mejor contraste en dark mode */
+.dark .badge-outline {
+  background-color: oklch(0.25 0.02 260);
+}
+
+/* Tablas con mejor contraste en dark mode */
+.dark table thead {
+  background-color: oklch(0.22 0.02 260) !important;
+}
+
+.dark table tbody tr:hover {
+  background-color: oklch(0.25 0.02 260) !important;
+}
+
+/* Inputs con mejor contraste en dark mode */
+.dark input[type="date"],
+.dark input[type="text"],
+.dark input[type="time"],
+.dark textarea,
+.dark select {
+  background-color: oklch(0.22 0.02 260);
+  border-color: oklch(0.35 0.02 260);
+  color: oklch(0.95 0 0);
+}
+
+/* Avatar masculino: flota suavemente con tonos azul/verde */
+@keyframes avatar-masc {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-3px) rotate(-1deg); }
+  50% { transform: translateY(-6px) rotate(0deg); }
+  75% { transform: translateY(-3px) rotate(1deg); }
+}
+.animar-avatar-masc {
+  background: linear-gradient(135deg, #1A3F7A, #06B6D4, #14B8A6, #1A3F7A);
+  background-size: 200% 200%;
+  animation: avatar-masc 4s ease-in-out infinite, gradiente-ocean 12s ease-in-out infinite;
+}
+
+/* Avatar femenino: rebote suave con tonos rosa/magenta */
+@keyframes avatar-fem {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-5px) scale(1.03); }
+}
+.animar-avatar-fem {
+  background: linear-gradient(135deg, #EC4899, #F43F5E, #A855F7, #EC4899);
+  background-size: 200% 200%;
+  animation: avatar-fem 3s ease-in-out infinite, gradiente-detractor 10s ease-in-out infinite;
+}
+
+/* Avatar neutro / sin género especificado: giro sutil con paleta Claro */
+@keyframes avatar-neutro {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(2deg); }
+}
+.animar-avatar-neutro {
+  background: linear-gradient(135deg, #DA291C, #F59E0B, #1A3F7A, #DA291C);
+  background-size: 200% 200%;
+  animation: avatar-neutro 5s ease-in-out infinite, gradiente-claro 11s ease-in-out infinite;
+}
+
+/* Halo pulsante detrás del avatar (efecto "aura") */
+@keyframes halo-pulsar {
+  0%, 100% { transform: scale(1); opacity: 0.4; }
+  50% { transform: scale(1.15); opacity: 0.7; }
+}
+.animar-halo {
+  position: relative;
+}
+.animar-halo::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 9999px;
+  z-index: -1;
+  background: inherit;
+  filter: blur(8px);
+  opacity: 0.5;
+  animation: halo-pulsar 3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animar-avatar-masc,
+  .animar-avatar-fem,
+  .animar-avatar-neutro,
+  .animar-halo::before {
+    animation: none !important;
+  }
+}
+
 /* Oculta la barra de scroll pero mantiene el desplazamiento
    (barra de pestañas deslizable) */
 .sin-barra-scroll {

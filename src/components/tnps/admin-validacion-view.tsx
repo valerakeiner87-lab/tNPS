@@ -1,12 +1,12 @@
 'use client';
 
 /**
- * v3.4.0 — AdminValidacionView
+ * v3.4.5 — AdminValidacionView
  * --------------------------------
  * Panel para supervisores/admins de validación de tiempos diarios.
  *
  * Replica la lógica del HTML de referencia "Validador de Horas Robot":
- *  1. Carga Horas Robot (Program_Time, Horas a pagar) por asesor/día.
+ *  1. Carga Horas Robot (Program_Time, Horas a pagar, Start/End Date, Entrada/Salida real) por asesor/día.
  *  2. Carga Bitácora de Deslogueos Autorizados (tiempo no pago).
  *  3. Carga Novedades ingresadas por los asesores (formulario).
  *  4. Por cada combinación [documento + fecha] muestra:
@@ -17,6 +17,13 @@
  *      - Novedades presentadas (todas las del asesor para esa fecha)
  *      - Tiempo a justificar (faltante, hasta cubrirse)
  *      - Acción: "Tiempo Ajustado"
+ *
+ * v3.4.5: Cada fila es clickeable y abre un Dialog con el detalle completo:
+ *  - Turno programado (Start_Date → End_Date) vs. turno real (Entrada/Salida real)
+ *  - Hora de conexión y de deslogueo
+ *  - Justificación de salida anticipada (cruce con bitácora)
+ *  - Justificación de tardanza (cruce con bitácora de disponibilidad)
+ *  - Ecuación del tiempo + acción ajustar con nota del supervisor
  */
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -58,8 +65,15 @@ import {
 } from '@/lib/firestore-data';
 import type { Novedad } from '@/lib/neon-data';
 import { exportarTablaAExcel } from '@/lib/excel-export';
+import { ValidacionDetalleDialog } from './validacion-detalle-dialog';
 
-const TARIFA_POR_HORA = 15; // Q15/hora
+const TARIFA_POR_HORA_COP = 8338; // COP/hora (SMMLV 2026, 210h/mes)
+const MONEDA = 'COP';
+
+function fmtCOP(valor: number): string {
+  const v = Math.round(valor || 0);
+  return `$ ${v.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ${MONEDA}`;
+}
 
 function fmtHoras(segundos: number): string {
   if (!segundos || segundos <= 0) return '0h';
@@ -137,6 +151,10 @@ export function AdminValidacionView() {
   const [cargandoNovedades, setCargandoNovedades] = useState<boolean>(false);
   const [procesandoId, setProcesandoId] = useState<string | null>(null);
   const [novedades, setNovedades] = useState<Novedad[]>([]);
+  // v3.4.5: estado para el dialog de detalle
+  const [filaSeleccionada, setFilaSeleccionada] = useState<FilaValidacion | null>(null);
+  const [registroSeleccionado, setRegistroSeleccionado] = useState<RegistroHorasRobot | null>(null);
+  const [dialogoAbierto, setDialogoAbierto] = useState<boolean>(false);
 
   useEffect(() => {
     setCargandoNovedades(true);
@@ -213,7 +231,7 @@ export function AdminValidacionView() {
         const estadoAjuste = novsDelDoc.length > 0
           ? (novsValidas.length > 0 ? 'ajustado' : 'pendiente')
           : (deslogueo ? 'con-deslogueo' : 'sin-novedad');
-        const valorDia = (r.horasAPagar + tiempoAIngresar) / 3600 * TARIFA_POR_HORA;
+        const valorDia = (r.horasAPagar + tiempoAIngresar) / 3600 * TARIFA_POR_HORA_COP;
         return {
           documento: r.documento,
           nombre: r.nombre,
@@ -261,7 +279,7 @@ export function AdminValidacionView() {
     setProcesandoId(`${fila.documento}|${fila.fecha}`);
     try {
       const tiempoAjustadoSeg = fila.tiempoAIngresar;
-      const valorMonetario = (fila.horasRobot + tiempoAjustadoSeg) / 3600 * TARIFA_POR_HORA;
+      const valorMonetario = (fila.horasRobot + tiempoAjustadoSeg) / 3600 * TARIFA_POR_HORA_COP;
       await actualizarNominaDiaria(
         fila.documento,
         fila.fecha,
@@ -270,7 +288,7 @@ export function AdminValidacionView() {
         'ajustado'
       );
       toast.success(
-        `Tiempo ajustado para ${fila.nombre} el ${fmtFecha(fila.fecha)}: +${fmtHoras(tiempoAjustadoSeg)}. Valor: Q${valorMonetario.toFixed(2)}.`
+        `Tiempo ajustado para ${fila.nombre} el ${fmtFecha(fila.fecha)}: +${fmtHoras(tiempoAjustadoSeg)}. Valor: ${fmtCOP(valorMonetario)}.`
       );
       // Recargar novedades
       const res = await leerNovedades();
@@ -302,7 +320,7 @@ export function AdminValidacionView() {
       'Novedades': f.novedades.length,
       'Tiempo a Ingresar (h)': (f.tiempoAIngresar / 3600).toFixed(2),
       'Estado': f.estadoAjuste,
-      'Valor Día (Q)': f.valorDia.toFixed(2),
+      'Valor Día (COP)': Math.round(f.valorDia),
     }));
     const nombre = `validacion-tiempos-${new Date().toISOString().slice(0, 10)}.xlsx`;
     exportarTablaAExcel(filasExcel as unknown as Record<string, unknown>[], 'Validación', nombre);
@@ -497,8 +515,22 @@ export function AdminValidacionView() {
                     {filas.map((f) => {
                       const key = `${f.documento}|${f.fecha}`;
                       const esAjustado = f.estadoAjuste === 'ajustado';
+                      // v3.4.5: handler para abrir el dialog de detalle
+                      const abrirDetalle = () => {
+                        // Buscar el registro Horas Robot completo
+                        const reg = datosHorasRobot?.registros.find(
+                          (r) => r.documento === f.documento && r.fecha === f.fecha
+                        ) ?? null;
+                        setFilaSeleccionada(f);
+                        setRegistroSeleccionado(reg);
+                        setDialogoAbierto(true);
+                      };
                       return (
-                        <TableRow key={key}>
+                        <TableRow
+                          key={key}
+                          onClick={abrirDetalle}
+                          className="cursor-pointer hover:bg-muted/50 transition-colors"
+                        >
                           <TableCell className="text-xs font-mono">{f.documento}</TableCell>
                           <TableCell className="text-xs">{f.nombre || '—'}</TableCell>
                           <TableCell className="text-xs whitespace-nowrap">{fmtFecha(f.fecha)}</TableCell>
@@ -536,7 +568,7 @@ export function AdminValidacionView() {
                             {f.tiempoAIngresar > 0 ? fmtHoras(f.tiempoAIngresar) : '—'}
                           </TableCell>
                           <TableCell className="text-right tabular-nums text-xs font-semibold text-promotor">
-                            Q{f.valorDia.toFixed(2)}
+                            {fmtCOP(f.valorDia)}
                           </TableCell>
                           <TableCell className="text-right">
                             {esAjustado ? (
@@ -548,7 +580,10 @@ export function AdminValidacionView() {
                                 size="sm"
                                 variant="outline"
                                 disabled={procesandoId === key}
-                                onClick={() => ajustarTiempo(f)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  ajustarTiempo(f);
+                                }}
                                 className="gap-1"
                               >
                                 {procesandoId === key ? (
@@ -584,7 +619,7 @@ export function AdminValidacionView() {
       <Card>
         <CardContent className="p-4 text-xs text-muted-foreground space-y-1">
           <p>
-            <strong>Tarifa de referencia:</strong> Q{TARIFA_POR_HORA.toFixed(2)}/hora.
+            <strong>Tarifa de referencia:</strong> {fmtCOP(TARIFA_POR_HORA_COP)}/hora.
             El valor del día se calcula como (horas robot + tiempo a ingresar) × tarifa.
           </p>
           <p>
@@ -599,6 +634,26 @@ export function AdminValidacionView() {
           </p>
         </CardContent>
       </Card>
+
+      {/* v3.4.5 — Dialog de detalle al hacer clic en una fila */}
+      <ValidacionDetalleDialog
+        fila={filaSeleccionada}
+        registroHorasRobot={registroSeleccionado}
+        deslogueosFecha={
+          datosBitacora?.deslogueos.filter((d) => d.fecha === filaSeleccionada?.fecha) ?? []
+        }
+        abierto={dialogoAbierto}
+        onCerrar={() => {
+          setDialogoAbierto(false);
+          setFilaSeleccionada(null);
+          setRegistroSeleccionado(null);
+        }}
+        onAjustado={async () => {
+          // Recargar novedades tras ajustar
+          const res = await leerNovedades();
+          setNovedades(res || []);
+        }}
+      />
     </div>
   );
 }

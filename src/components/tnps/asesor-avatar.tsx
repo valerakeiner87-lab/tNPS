@@ -11,6 +11,9 @@ import { cn } from '@/lib/utils';
 // 2. Si no, genera un avatar DiceBear con seed = login (variante "thumbs"
 //    para estilo amigable + colores de marca Claro).
 // 3. Fallback: iniciales del nombre (avatar.tsx AvatarFallback).
+//
+// v3.4.5: AsesorAvatarGradientAnimado — variante con gradiente animado
+// según el género del asesor (masculino/femenino/neutro).
 // ============================================================
 
 const CLARO_PALETTE = 'DA291C,1A3F7A,F59E0B,16A34A,0B1426';
@@ -19,6 +22,7 @@ interface Props {
   login: string;
   nombre?: string;
   avatarUrl?: string | null;
+  genero?: string;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }
@@ -55,9 +59,17 @@ function getDiceBearUrl(seed: string): string {
   return `https://api.dicebear.com/9.x/thumbs/svg?seed=${safeSeed}&backgroundColor=${CLARO_PALETTE}&backgroundType=gradientLinear&radius=50`;
 }
 
-function getBoringAvatarsUrl(seed: string, size: number): string {
-  const safeSeed = encodeURIComponent(seed || 'asesor');
-  return `https://boring-avatars.com/api/avatars/${size}/${safeSeed}?colors=${CLARO_PALETTE}`;
+/** Detecta el género desde strings como "M", "F", "Masculino", "Femenino" */
+function claseGenero(genero?: string): string {
+  if (!genero) return 'animar-avatar-neutro';
+  const g = genero.trim().toUpperCase();
+  if (g === 'M' || g === 'MASCULINO' || g === 'MASC' || g === 'H' || g === 'HOMBRE') {
+    return 'animar-avatar-masc';
+  }
+  if (g === 'F' || g === 'FEMENINO' || g === 'FEM' || g === 'MUJER') {
+    return 'animar-avatar-fem';
+  }
+  return 'animar-avatar-neutro';
 }
 
 /**
@@ -121,3 +133,44 @@ export function AsesorAvatarGradient({ login, nombre, size = 'md', className }: 
     </div>
   );
 }
+
+/**
+ * v3.4.5 — AsesorAvatarGradientAnimado
+ * Variante con gradiente animado según el género del asesor:
+ *  - Masculino: tonos azul/cian/teal, flotación suave (4s)
+ *  - Femenino: tonos rosa/magenta/violeta, rebote suave (3s)
+ *  - Neutro/Sin especificar: paleta Claro, giro sutil (5s)
+ *
+ * Incluye un halo pulsante detrás del avatar (efecto "aura").
+ */
+export function AsesorAvatarGradientAnimado({
+  login,
+  nombre,
+  genero,
+  size = 'md',
+  className,
+}: Props) {
+  const inicial = getInitials(nombre || login);
+  const sizeClass = SIZE_MAP[size];
+  const textClass = TEXT_SIZE_MAP[size];
+  const animClass = claseGenero(genero);
+
+  return (
+    <div
+      className={cn(
+        sizeClass,
+        'rounded-full animar-halo',
+        animClass,
+        'flex items-center justify-center text-white font-bold shadow-md shrink-0',
+        textClass,
+        className
+      )}
+      aria-label={`Avatar animado de ${nombre || login}`}
+      role="img"
+      title={`${nombre || login} · ${genero || 'género no especificado'}`}
+    >
+      {inicial}
+    </div>
+  );
+}
+

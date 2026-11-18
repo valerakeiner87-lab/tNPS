@@ -1660,6 +1660,9 @@ export async function parsearHorasRobot(archivo: File): Promise<DatosHorasRobot>
     const horasFact = tiempoExcelASegundos(
       row['horas fact'] ?? row['horasfact']
     );
+    // v3.4.5: Start_Date y End_Date (inicio/fin programado del turno)
+    const startDate = datetimeExcelAISO(row['start date'] ?? row['startdate'] ?? row['start_date']);
+    const endDate = datetimeExcelAISO(row['end date'] ?? row['enddate'] ?? row['end_date']);
     const entradaReal = datetimeExcelAISO(row['entrada real'] ?? row['entrada_real']);
     const salidaReal = datetimeExcelAISO(row['salida real'] ?? row['salida_real']);
     const tiempoConexion = tiempoExcelASegundos(
@@ -1668,6 +1671,17 @@ export async function parsearHorasRobot(archivo: File): Promise<DatosHorasRobot>
 
     const faltante = Math.max(0, programTime - horasAPagar);
     const exceso = Math.max(0, horasAPagar - programTime);
+
+    // v3.4.6: Auxiliares (timedelta Excel → segundos)
+    const disponible = tiempoExcelASegundos(row['disponible']);
+    const enCola = tiempoExcelASegundos(row['en la cola']);
+    const capacitacion = tiempoExcelASegundos(row['capacitacion']);
+    const comida = tiempoExcelASegundos(row['comida']);
+    const descanso = tiempoExcelASegundos(row['descanso']);
+    const reunion = tiempoExcelASegundos(row['reunion']);
+    const inactivo = tiempoExcelASegundos(row['inactivo']);
+    const ausente = tiempoExcelASegundos(row['ausente']);
+    const ocupado = tiempoExcelASegundos(row['ocupado']);
 
     if (!fechaMin || fecha < fechaMin) fechaMin = fecha;
     if (!fechaMax || fecha > fechaMax) fechaMax = fecha;
@@ -1683,11 +1697,22 @@ export async function parsearHorasRobot(archivo: File): Promise<DatosHorasRobot>
       programTime,
       horasAPagar,
       horasFact,
+      startDate,
+      endDate,
       entradaReal,
       salidaReal,
       tiempoConexion,
       faltante,
       exceso,
+      disponible,
+      enCola,
+      capacitacion,
+      comida,
+      descanso,
+      reunion,
+      inactivo,
+      ausente,
+      ocupado,
     });
   }
 

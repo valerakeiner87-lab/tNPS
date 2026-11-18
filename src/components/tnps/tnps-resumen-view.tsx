@@ -88,7 +88,7 @@ export function TnpsResumenView() {
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="rounded-2xl header-claro text-white p-6 sm:p-8 relative overflow-hidden"
+        className="rounded-2xl animar-gradiente-claro animar-brillo text-white p-6 sm:p-8 relative overflow-hidden shadow-xl"
       >
         <div className="relative">
           <p className="text-white/75 text-sm">
@@ -119,25 +119,43 @@ export function TnpsResumenView() {
 
       {/* KPI cards: Promotores / Pasivos / Detractores */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <KPICard
-          titulo="Promotores"
-          valor={kpis.promotores}
-          subtitulo={`${kpis.pctPromotores.toFixed(1)}% del total`}
-          color="promotor"
-          icono={<TrendingUp className="h-5 w-5" />}
-        />
-        <KPICard
-          titulo="Pasivos"
-          valor={kpis.pasivos}
-          subtitulo={`${kpis.pctPasivos.toFixed(1)}% del total`}
-          color="pasivo"
-        />
-        <KPICard
-          titulo="Detractores"
-          valor={kpis.detractores}
-          subtitulo={`${kpis.pctDetractores.toFixed(1)}% del total`}
-          color="detractor"
-        />
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+        >
+          <KPICard
+            titulo="Promotores"
+            valor={kpis.promotores}
+            subtitulo={`${kpis.pctPromotores.toFixed(1)}% del total`}
+            color="promotor"
+            icono={<TrendingUp className="h-5 w-5" />}
+          />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <KPICard
+            titulo="Pasivos"
+            valor={kpis.pasivos}
+            subtitulo={`${kpis.pctPasivos.toFixed(1)}% del total`}
+            color="pasivo"
+          />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+        >
+          <KPICard
+            titulo="Detractores"
+            valor={kpis.detractores}
+            subtitulo={`${kpis.pctDetractores.toFixed(1)}% del total`}
+            color="detractor"
+          />
+        </motion.div>
       </div>
 
       {/* Breakdown visual */}

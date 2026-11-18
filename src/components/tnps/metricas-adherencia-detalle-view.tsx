@@ -171,7 +171,7 @@ export function MetricasAdherenciaDetalleView() {
   return (
     <div className="space-y-4">
       {/* Encabezado */}
-      <Card className="border-l-4 border-l-primary">
+      <Card className="border-l-4 border-l-primary animar-aparecer animar-brillo">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" /> Adherencia detallada

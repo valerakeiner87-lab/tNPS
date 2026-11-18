@@ -37,7 +37,7 @@ import type { Novedad } from '@/lib/neon-data';
 import { normalizarDocumento, documentosIguales } from '@/lib/utils';
 
 // Tarifa por hora en Pesos Colombianos (COP). Valor de referencia configurable.
-const TARIFA_POR_HORA_COP = 6500; // COP/hora (~USD 1.5)
+const TARIFA_POR_HORA_COP = 8338; // COP/hora (SMMLV 2026, 210h/mes desde 15-jul-2026)
 const MONEDA = 'COP';
 
 function fmtHoras(horas: number): string {
@@ -289,7 +289,7 @@ export function NominaConsolidadoView() {
   return (
     <div className="space-y-4">
       {/* Encabezado */}
-      <Card className="border-l-4 border-l-primary">
+      <Card className="border-l-4 border-l-primary animar-aparecer animar-brillo">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Wallet className="h-5 w-5 text-primary" /> Nómina consolidado
@@ -337,7 +337,7 @@ export function NominaConsolidadoView() {
             <p className="text-xs text-muted-foreground">Novedades aprobadas</p>
           </CardContent>
         </Card>
-        <Card className="border-l-4 border-l-promotor">
+        <Card className="border-l-4 border-l-promotor animar-aparecer animar-brillo" style={{ animationDelay: '0.15s' }}>
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Wallet className="h-3.5 w-3.5" /> Valor acumulado

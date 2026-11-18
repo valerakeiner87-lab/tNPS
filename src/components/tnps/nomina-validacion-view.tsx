@@ -35,7 +35,7 @@ import { leerNovedades } from '@/lib/firestore-data';
 import type { Novedad } from '@/lib/neon-data';
 import { normalizarDocumento, documentosIguales } from '@/lib/utils';
 
-const TARIFA_POR_HORA_COP = 6500; // COP/hora
+const TARIFA_POR_HORA_COP = 8338; // COP/hora (SMMLV 2026, 210h/mes)
 const MONEDA = 'COP';
 
 function fmtHoras(horas: number): string {
@@ -249,7 +249,7 @@ export function NominaValidacionView() {
   return (
     <div className="space-y-4">
       {/* Encabezado */}
-      <Card className="border-l-4 border-l-primary">
+      <Card className="border-l-4 border-l-primary animar-aparecer animar-brillo">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-primary" /> Validación diaria
@@ -291,7 +291,7 @@ export function NominaValidacionView() {
             </p>
           </CardContent>
         </Card>
-        <Card className="border-l-4 border-l-promotor">
+        <Card className="border-l-4 border-l-promotor animar-aparecer animar-brillo" style={{ animationDelay: '0.15s' }}>
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Wallet className="h-3.5 w-3.5" /> Valor total

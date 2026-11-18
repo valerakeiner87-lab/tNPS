@@ -49,7 +49,7 @@ import {
 import type { Encuesta, Linea, MetricaAdherencia, KPIS, DatosAdherencia } from '@/lib/types';
 import { useStore } from '@/lib/store';
 import { CumpleanosCard } from '@/components/tnps/cumpleanos-card';
-import { AsesorAvatarGradient } from '@/components/tnps/asesor-avatar';
+import { AsesorAvatarGradient, AsesorAvatarGradientAnimado } from '@/components/tnps/asesor-avatar';
 import { normalizarDocumento, documentosIguales } from '@/lib/utils';
 
 // ------------------------------------------------------------
@@ -279,7 +279,7 @@ export function InicioPanel() {
   return (
     <div className="space-y-6">
       {/* ---------------- HERO ---------------- */}
-      <section className="relative overflow-hidden rounded-2xl header-claro text-white p-6 sm:p-8 animar-aparecer">
+      <section className="relative overflow-hidden rounded-2xl animar-gradiente-claro animar-brillo text-white p-6 sm:p-8 animar-aparecer shadow-xl">
         <div className="relative">
           <p className="text-white/75 text-sm">
             {saludo()}{nombre ? `, ${nombre}` : ''}
@@ -326,7 +326,7 @@ export function InicioPanel() {
       {esAsesor && (
         <section className="grid lg:grid-cols-3 gap-4">
           {/* Tarjeta de perfil */}
-          <Card className="lg:col-span-1">
+          <Card className="lg:col-span-1 animar-borde-gradiente animar-aparecer">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <UserIcon className="h-4 w-4 text-primary" /> Mi perfil
@@ -334,9 +334,10 @@ export function InicioPanel() {
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-center gap-3">
-                <AsesorAvatarGradient
+                <AsesorAvatarGradientAnimado
                   login={perfilAsesor?.loginNormalizado || ''}
                   nombre={perfilAsesor?.nombre || ''}
+                  genero={perfilAsesor?.genero}
                   size="lg"
                 />
                 <div className="min-w-0">
@@ -376,7 +377,7 @@ export function InicioPanel() {
           </Card>
 
           {/* KPI cards (Adherencia / TMO / PPH / ABS / Llegadas tarde) */}
-          <Card className="lg:col-span-2">
+          <Card className="lg:col-span-2 animar-borde-gradiente animar-aparecer" style={{ animationDelay: '0.1s' }}>
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <div>
@@ -1146,7 +1147,7 @@ function MiAdherenciaCard({
 
   if (!datosAdherencia || datosAdherencia.totalRegistros === 0) {
     return (
-      <Card>
+      <Card className="animar-aparecer">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Activity className="h-4 w-4 text-primary" /> Mi adherencia (ayer {fmtFechaCorta(fechaAyer)})
@@ -1163,7 +1164,7 @@ function MiAdherenciaCard({
 
   if (!metricaAyer) {
     return (
-      <Card>
+      <Card className="animar-aparecer">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2 flex-wrap">
             <CardTitle className="text-base flex items-center gap-2">
@@ -1188,7 +1189,7 @@ function MiAdherenciaCard({
   const esDescanso = (metricaAyer.asistencia || '').toLowerCase().includes('descanso');
 
   return (
-    <Card>
+    <Card className={`animar-aparecer animar-brillo ${esDescanso ? 'animar-borde-gradiente' : 'animar-borde-gradiente'}`}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2 flex-wrap">
           <CardTitle className="text-base flex items-center gap-2">
@@ -1202,8 +1203,8 @@ function MiAdherenciaCard({
       <CardContent>
         {esDescanso ? (
           <div className="py-8 text-center space-y-3">
-            <div className="mx-auto h-14 w-14 rounded-full bg-muted flex items-center justify-center" aria-hidden>
-              <Coffee className="h-7 w-7 text-muted-foreground" />
+            <div className="mx-auto h-14 w-14 rounded-full animar-gradiente-sunset flex items-center justify-center" aria-hidden>
+              <Coffee className="h-7 w-7 text-white" />
             </div>
             <p className="text-lg font-semibold text-muted-foreground">Descanso programado</p>
             <p className="text-xs text-muted-foreground">
@@ -1249,7 +1250,7 @@ function KpiPequeno({
   color?: string;
 }) {
   return (
-    <div className="rounded-lg border bg-card p-3">
+    <div className="rounded-lg border bg-card p-3 transition-all hover:shadow-md hover:-translate-y-0.5 animar-aparecer">
       <p className="text-[11px] text-muted-foreground truncate">{titulo}</p>
       <p
         className="text-lg font-bold tabular-nums mt-0.5"

@@ -56,6 +56,7 @@ import type { ResultadoValidacionEstructura } from './excel-parser';
 import { normalizarLogin } from './queue-mapping';
 import { detectarAgresividad } from './keyword-detector';
 import type { Area } from './types';
+import { normalizarDocumento } from './utils';
 import {
   cacheBorrarEncuestas,
   cacheBorrarAsesoresHC,
@@ -516,6 +517,65 @@ export const useStore = create<EstadoPrincipal>((set, get) => ({
         const datosBit = await leerBitacora();
         if (datosBit) set({ datosBitacora: datosBit });
       } catch {}
+
+      // v3.4.5: Si el asesor logueado no tiene documento en la sesión
+      // (caso donde AsesorHC no se encontró al hacer login), intentar
+      // recuperarlo desde Horas Robot (USUARIO CIC → DOCUMENTO) o desde
+      // Adherencia (por nombre). Esto resuelve el bug "algunos asesores
+      // no ven sus métricas de adherencia".
+      const { perfil: perfilActual, perfilAsesor: perfilAsesorActual } = get();
+      if (
+        perfilActual?.rol === 'asesor' &&
+        perfilAsesorActual &&
+        !normalizarDocumento(perfilAsesorActual.documento)
+      ) {
+        const username = (perfilAsesorActual.loginNormalizado || perfilActual.loginNormalizado || '').toLowerCase().trim();
+        const nombreAsesor = (perfilAsesorActual.nombre || perfilActual.nombre || '').toUpperCase().trim();
+        let documentoEncontrado = '';
+
+        // 1) Buscar en Horas Robot por USUARIO CIC
+        const datosHR = get().datosHorasRobot;
+        if (datosHR?.registros?.length && username) {
+          const match = datosHR.registros.find(
+            (r) => (r.usuarioCic || '').toLowerCase().trim() === username
+          );
+          if (match) documentoEncontrado = normalizarDocumento(match.documento);
+        }
+
+        // 2) Fallback: Adherencia por nombre exacto
+        if (!documentoEncontrado && nombreAsesor) {
+          const datosAdh = get().datosAdherencia;
+          if (datosAdh?.metricas?.length) {
+            const match = datosAdh.metricas.find(
+              (m) => (m.nombre || '').toUpperCase().trim() === nombreAsesor
+            );
+            if (match) documentoEncontrado = normalizarDocumento(match.documento);
+          }
+        }
+
+        // 3) Fallback: Horas Robot por nombre exacto
+        if (!documentoEncontrado && nombreAsesor) {
+          const datosHRfb = get().datosHorasRobot;
+          if (datosHRfb?.registros?.length) {
+            const match = datosHRfb.registros.find(
+              (r) => (r.nombre || '').toUpperCase().trim() === nombreAsesor
+            );
+            if (match) documentoEncontrado = normalizarDocumento(match.documento);
+          }
+        }
+
+        if (documentoEncontrado) {
+          console.info(`[Auth] Documento recuperado via fallback: ${documentoEncontrado}`);
+          set({
+            perfil: perfilActual ? { ...perfilActual, documento: documentoEncontrado } : perfilActual,
+            perfilAsesor: perfilAsesorActual
+              ? { ...perfilAsesorActual, documento: documentoEncontrado }
+              : perfilAsesorActual,
+          });
+        } else {
+          console.warn(`[Auth] No se pudo recuperar documento para ${username || nombreAsesor}`);
+        }
+      }
 
       // Aplicar análisis de alertas a las encuestas
       const mapaAlertas = new Map(analisis.map((a) => [a.encuestaId, a]));

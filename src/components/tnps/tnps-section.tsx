@@ -25,7 +25,7 @@ export function TnpsSection() {
   return (
     <div className="space-y-4">
       <Tabs value={subtab} onValueChange={(v) => setSubtab(v as SubtabTnps)}>
-        <TabsList className="grid w-full grid-cols-3 max-w-md">
+        <TabsList className="grid w-full grid-cols-3 max-w-md animar-aparecer">
           <TabsTrigger value="resumen" className="gap-1.5">
             <BarChart3 className="h-3.5 w-3.5" /> Resumen TNPS
           </TabsTrigger>
