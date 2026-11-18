@@ -1,0 +1,429 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  /* Paleta corporativa Claro */
+  --color-claro-red: #DA291C;
+  --color-claro-navy: #0B1426;
+  --color-claro-blue: #122B52;
+  --color-claro-blue-2: #1A3F7A;
+  --color-promotor: #16A34A;
+  --color-pasivo: #F59E0B;
+  --color-detractor: #DC2626;
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: #F8FAFC;
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: #DA291C;
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.96 0.005 260);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.955 0.005 260);
+  --muted-foreground: oklch(0.5 0.01 260);
+  --accent: oklch(0.945 0.01 260);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: #DC2626;
+  --border: oklch(0.9 0.008 260);
+  --input: oklch(0.9 0.008 260);
+  --ring: #DA291C;
+  --chart-1: #DA291C;
+  --chart-2: #1A3F7A;
+  --chart-3: #16A34A;
+  --chart-4: #F59E0B;
+  --chart-5: #122B52;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: #DA291C;
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.96 0.005 260);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.9 0.008 260);
+  --sidebar-ring: #DA291C;
+}
+
+.dark {
+  --background: #0F172A;
+  --foreground: oklch(0.95 0.005 260);
+  --card: #16213B;
+  --card-foreground: oklch(0.95 0.005 260);
+  --popover: #16213B;
+  --popover-foreground: oklch(0.95 0.005 260);
+  --primary: #DA291C;
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: #1E2A4A;
+  --secondary-foreground: oklch(0.95 0.005 260);
+  --muted: #1E2A4A;
+  --muted-foreground: oklch(0.68 0.01 260);
+  --accent: #223054;
+  --accent-foreground: oklch(0.95 0.005 260);
+  --destructive: #EF4444;
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: #DA291C;
+  --chart-1: #F05545;
+  --chart-2: #4E7BC4;
+  --chart-3: #34C77B;
+  --chart-4: #F5B84E;
+  --chart-5: #9DB8DC;
+  --sidebar: #16213B;
+  --sidebar-foreground: oklch(0.95 0.005 260);
+  --sidebar-primary: #DA291C;
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: #1E2A4A;
+  --sidebar-accent-foreground: oklch(0.95 0.005 260);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: #DA291C;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ============================================================
+   Gradiente del header corporativo (azul oscuro 3 tonos)
+   Usa var(--primary) para acentos (cambia con la paleta elegida)
+   ============================================================ */
+.header-claro {
+  background: linear-gradient(135deg, #0B1426 0%, #122B52 50%, #1A3F7A 100%);
+  position: relative;
+}
+.header-claro::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--primary);
+  opacity: 0.85;
+}
+
+.texto-gradiente-claro {
+  background: linear-gradient(90deg, var(--primary), color-mix(in srgb, var(--primary) 60%, white));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ============================================================
+   Animaciones para el panel de inicio (emojis en movimiento)
+   ============================================================ */
+
+/* Emoji flotando suavemente */
+@keyframes flotar {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-8px) rotate(3deg); }
+  50% { transform: translateY(-14px) rotate(-2deg); }
+  75% { transform: translateY(-6px) rotate(2deg); }
+}
+.animar-flotar {
+  animation: flotar 4s ease-in-out infinite;
+}
+.animar-flotar-lento {
+  animation: flotar 7s ease-in-out infinite;
+}
+.animar-flotar-rapido {
+  animation: flotar 2.6s ease-in-out infinite;
+}
+
+/* Emoji viajero (movimiento de encuestas: entra, cruza y sale) */
+@keyframes viajar {
+  0% { transform: translateX(-120%) scale(0.6); opacity: 0; }
+  10% { opacity: 1; transform: translateX(-100%) scale(1); }
+  90% { opacity: 1; }
+  100% { transform: translateX(1200%) scale(0.6); opacity: 0; }
+}
+.animar-viajar {
+  animation: viajar 9s linear infinite;
+}
+
+/* Pulso de red (torre de red emitiando señal) */
+@keyframes pulso-red {
+  0% { box-shadow: 0 0 0 0 rgba(26, 63, 122, 0.45); }
+  70% { box-shadow: 0 0 0 14px rgba(26, 63, 122, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(26, 63, 122, 0); }
+}
+.animar-pulso-red {
+  animation: pulso-red 2.2s ease-out infinite;
+}
+
+/* Ondas de señal (círculos expansivos) */
+@keyframes onda-senal {
+  0% { transform: scale(0.6); opacity: 0.8; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+.animar-onda {
+  animation: onda-senal 2.4s ease-out infinite;
+}
+
+/* Brinco sutil (bounce) */
+@keyframes brinco {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-10px); }
+  60% { transform: translateY(-6px); }
+}
+.animar-brinco {
+  animation: brinco 1.8s ease-in-out infinite;
+}
+
+/* Aparición suave */
+@keyframes aparecer {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animar-aparecer {
+  animation: aparecer 0.55s ease-out both;
+}
+
+/* Latido para alertas */
+@keyframes latido {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+.animar-latido {
+  animation: latido 1.6s ease-in-out infinite;
+}
+
+/* Flujo de puntos (línea de datos moviéndose) */
+@keyframes fluir {
+  0% { background-position: 0 0; }
+  100% { background-position: 60px 0; }
+}
+.animar-flujo {
+  background-image: linear-gradient(90deg, rgba(218, 41, 28, 0.55) 50%, transparent 50%);
+  background-size: 60px 3px;
+  animation: fluir 1.4s linear infinite;
+}
+
+/* Oculta la barra de scroll pero mantiene el desplazamiento
+   (barra de pestañas deslizable) */
+.sin-barra-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.sin-barra-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Scrollbar personalizado para listas largas */
+.scroll-fino::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scroll-fino::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-fino::-webkit-scrollbar-thumb {
+  background: oklch(0.7 0.02 260);
+  border-radius: 8px;
+}
+.scroll-fino::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.55 0.02 260);
+}
+
+/* Ticker vertical para el feed de encuestas */
+@keyframes ticker-entrada {
+  from { opacity: 0; transform: translateX(-24px) scale(0.95); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+.animar-ticker {
+  animation: ticker-entrada 0.5s ease-out both;
+}
+
+/* ============================================================
+   Animación: fondo con gradiente animado (login)
+   ============================================================ */
+@keyframes gradient-mover {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animar-fondo-gradiente {
+  background-size: 200% 200%;
+  animation: gradient-mover 18s ease infinite;
+}
+
+/* ============================================================
+   Animación: emojis flotando en el fondo del login
+   ============================================================ */
+@keyframes flotar-lento {
+  0%   { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; }
+  10%  { opacity: 0.85; }
+  90%  { opacity: 0.85; }
+  100% { transform: translateY(-110vh) translateX(30px) rotate(20deg); opacity: 0; }
+}
+.animar-emoji-login {
+  animation: flotar-lento 14s linear infinite;
+}
+
+/* Brinco suave para el logo del login */
+@keyframes brinco-sutil {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-8px) scale(1.04); }
+}
+.animar-brinco-sutil {
+  animation: brinco-sutil 2.4s ease-in-out infinite;
+}
+
+/* ============================================================
+   v3.0.7 — Mejoras corporativas: transiciones, hover, fade-in
+   ============================================================ */
+
+/* Transición suave global para cards, botones y tablas */
+:where([data-slot="card"], .card, table, button) {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover: levanta tarjetas 2px (cards con clase .card-hover o [data-slot="card"]) */
+[data-slot="card"] {
+  transition: transform 220ms ease, box-shadow 220ms ease, background-color 220ms ease, border-color 220ms ease;
+}
+[data-slot="card"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -8px rgba(11, 20, 38, 0.18);
+}
+.dark [data-slot="card"]:hover {
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.55);
+}
+
+/* Botones: micro-feedback */
+button:not(:disabled):active {
+  transform: translateY(0.5px);
+}
+
+/* Fade-in para el contenido principal al cambiar de pestaña */
+@keyframes fade-in-entrada {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animar-fade-in {
+  animation: fade-in-entrada 0.45s ease-out both;
+}
+
+/* Pulso suave para KPI cards al montarse (sutil, una sola vez) */
+@keyframes kpi-pulso {
+  0%   { transform: scale(1);   box-shadow: 0 0 0 0 rgba(218, 41, 28, 0.18); }
+  60%  { transform: scale(1.015); box-shadow: 0 0 0 6px rgba(218, 41, 28, 0); }
+  100% { transform: scale(1);   box-shadow: 0 0 0 0 rgba(218, 41, 28, 0); }
+}
+.animar-kpi {
+  animation: kpi-pulso 0.85s ease-out 0.1s both, fade-in-entrada 0.5s ease-out both;
+}
+
+/* Aparición escalada suave (para gráficos y resultados) */
+@keyframes escalar-fade {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.animar-escalar-fade {
+  animation: escalar-fade 0.4s ease-out both;
+}
+
+/* Confetti (CSS-only, para resultado de formulario) */
+@keyframes confetti-caer {
+  0%   { transform: translate3d(0, -10vh, 0) rotate(0deg);   opacity: 1; }
+  100% { transform: translate3d(var(--dx, 0), 110vh, 0) rotate(720deg); opacity: 0; }
+}
+.confetti-pieza {
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 14px;
+  border-radius: 2px;
+  animation: confetti-caer var(--dur, 2.5s) linear forwards;
+  will-change: transform, opacity;
+}
+
+/* Borde con gradiente (para formularios) */
+.borde-gradiente {
+  position: relative;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 40%, #1A3F7A)) border-box;
+  border: 2px solid transparent;
+}
+
+/* Mejor tipografía corporativa */
+body {
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Mejor scroll-fino en dark mode */
+.dark .scroll-fino::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+.dark .scroll-fino::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Mejor contraste de tablas en dark mode */
+.dark table thead th {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Efecto de carga en botones */
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Focus visible más corporativo */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}

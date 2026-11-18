@@ -1,0 +1,61 @@
+# ============================================================
+# .dockerignore — archivos excluidos del contexto de build Docker
+# ============================================================
+# IMPORTANTE: NO excluir scripts/ ni prisma/ — son necesarios para
+# el build y el runtime del contenedor en Hugging Face Spaces.
+# ============================================================
+
+# Dependencias (se reinstalan en el contenedor)
+node_modules
+
+# Builds previos
+.next
+out
+build
+
+# Git y configs de editor
+.git
+.gitignore
+.gitattributes
+
+# Env files (los Secrets del Space los provee en runtime)
+.env
+.env.local
+.env.development
+.env.production
+.env.example
+
+# Logs
+*.log
+dev.log
+dev.out.log
+server.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Bases de datos locales (SQLite dev)
+db/
+*.db
+*.db-journal
+
+# Descargas y artifacts
+download/
+skills/
+.zscripts/
+.z-ai-config
+.claude
+
+# TypeScript build info
+*.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Caddyfile (no se usa en HF Spaces)
+Caddyfile
+
+# README y docs ya están permitidos (no se excluyen)
+# - README.md: se incluye
+# - Dockerfile: se incluye automáticamente

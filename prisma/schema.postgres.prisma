@@ -1,0 +1,815 @@
+// ============================================================
+// tNPS Digital Claro Guatemala — Prisma Schema (PostgreSQL/Neon)
+// v3.0 — Soporte TMO diario, índices (TIEMPO/CONOCIMIENTO/SOLUCION/AMABILIDAD),
+//         umbrales TMO por línea, requisitos TMO para premios, logros ampliados,
+//         fotos de perfil y premios, temas de color.
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------------------------------
+// Encuestas Qualtrics (Digital y Telefónico) — con índices
+// ------------------------------------------------------------
+model Encuesta {
+  id                  String   @id
+  idTransaccion       String   @default("") @map("id_transaccion")
+  fechaDia            String   @map("fecha_dia")
+  fechaInicio         String   @map("fecha_inicio")
+  fechaRegistro       String   @map("fecha_registro")
+  hora                Int      @default(0)
+  horaExacta          String   @default("") @map("hora_exacta")
+  franjaHoraria       String   @map("franja_horaria")
+  grupo               String
+  tnps                Float    @default(0)
+  razon               String   @default("") @db.Text
+  comentarioSolucion  String   @default("") @map("comentario_solucion") @db.Text
+  comentarioAdicional String   @default("") @map("comentario_adicional") @db.Text
+  canal               String   @default("")
+  medioContacto       String   @default("") @map("medio_contacto")
+  unidad              String   @default("")
+  cola                String   @default("")
+  linea               String   @default("")
+  usuario             String   @default("")
+  loginNormalizado    String   @map("login_normalizado")
+  segmento            String   @default("")
+  idCliente           String   @default("") @map("id_cliente")
+  productoFamilia     String   @default("") @map("producto_familia")
+  nivel1              String   @default("") @map("nivel_1")
+  nivel2              String   @default("") @map("nivel_2")
+  nivel3              String   @default("") @map("nivel_3")
+  nivel4              String   @default("") @map("nivel_4")
+  nivel5              String   @default("") @map("nivel_5")
+  area                String   @default("digital")
+  // Índices (1-5 o null si no aplica). Para digital: tiempo, conocimiento, solucion.
+  // Para telefonico: amabilidad, conocimiento, solucion.
+  indiceTiempo        Float?   @map("indice_tiempo")
+  indiceConocimiento  Float?   @map("indice_conocimiento")
+  indiceSolucion      Float?   @map("indice_solucion")
+  indiceAmabilidad    Float?   @map("indice_amabilidad")
+  // Promedio de los índices de esta encuesta
+  indicePromedio      Float?   @map("indice_promedio")
+  alertaAgresiva      Boolean? @map("alerta_agresiva")
+  alertaRazon         String?  @map("alerta_razon") @db.Text
+  alertaSeveridad     String?  @map("alerta_severidad")
+  savedAtTs           BigInt?  @map("saved_at_ts")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@index([loginNormalizado])
+  @@index([fechaDia])
+  @@index([area])
+  @@index([grupo])
+  @@index([linea])
+  @@index([savedAtTs])
+  @@index([idTransaccion])
+  @@map("encuestas")
+}
+
+model AsesorHC {
+  documento        String   @id
+  nombre           String   @default("")
+  usuarioCic       String   @default("") @map("usuario_cic")
+  usuarioGen       String   @default("") @map("usuario_gen")
+  loginAib         String   @default("") @map("login_aib")
+  cargo            String   @default("")
+  lob              String   @default("")
+  linea            String?
+  supervisor       String   @default("")
+  jefeOperacion    String   @default("") @map("jefe_operacion")
+  fechaIngreso     String   @default("") @map("fecha_ingreso")
+  fechaNacimiento  String?  @map("fecha_nacimiento")
+  ciudad           String   @default("")
+  sede             String   @default("")
+  genero           String   @default("")
+  tipoContrato     String   @default("") @map("tipo_contrato")
+  modalidad        String   @default("")
+  contratacion     String   @default("")
+  email            String   @default("")
+  telefono         String   @default("")
+  origen           String   @default("ACTIVOS")
+  loginNormalizado String   @default("") @map("login_normalizado")
+  areas            String   @default("[]")
+  savedAtTs        BigInt?  @map("saved_at_ts")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@index([loginNormalizado])
+  @@index([documento])
+  @@index([savedAtTs])
+  @@index([lob])
+  @@map("asesores_hc")
+}
+
+// ------------------------------------------------------------
+// TMO — snapshot agregado por asesor
+// ------------------------------------------------------------
+model TMO {
+  id                 String   @id @default("current")
+  fechaProcesamiento String   @map("fecha_procesamiento")
+  archivoNombre      String   @map("archivo_nombre")
+  totalAsesores      Int      @map("total_asesores")
+  promedioGeneral    Float    @map("promedio_general")
+  fechaInicio        String   @map("fecha_inicio")
+  fechaFin           String   @map("fecha_fin")
+  asesores           String   @default("[]")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@map("tmo")
+}
+
+// ------------------------------------------------------------
+// TMO diario por asesor (para trend line del mes actual)
+// ------------------------------------------------------------
+model TMOAsesorDaily {
+  id              String   @id
+  documento       String   @map("documento")
+  nombreAsesor    String   @default("") @map("nombre_asesor")
+  loginNormalizado String  @default("") @map("login_normalizado")
+  lob             String   @default("")
+  supervisor      String   @default("")
+  fecha           String   @map("fecha") // YYYY-MM-DD
+  semana          String   @default("") // S1, S2, etc.
+  mes             String   @default("") // septiembre, octubre, etc.
+  interacciones   Int      @default(0) // Manejo
+  manejoTotal     Float    @default(0) // Manejo total (segundos)
+  tmo             Float    @default(0) // TMO en segundos = (manejoTotal/1000)/interacciones
+  meta            Float    @default(0) // Meta TMO
+  area            String   @default("") // digital o telefonico (área derivada del LOB)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@unique([documento, fecha])
+  @@index([documento])
+  @@index([fecha])
+  @@index([loginNormalizado])
+  @@index([mes])
+  @@index([area])
+  @@index([lob])
+  @@map("tmo_asesor_daily")
+}
+
+// ------------------------------------------------------------
+// Umbrales TMO por línea (configurable por admin)
+// ------------------------------------------------------------
+model ConfigTMOLinea {
+  id              String   @id
+  linea           String   @unique // WhatsApp Fijo Soporte, WhatsApp Fijo Información, etc.
+  lineaNormalizada String  @default("") @map("linea_normalizada")
+  area            String   @default("") // digital o telefonico
+  tmoMaximo       Float    @default(600) @map("tmo_maximo") // segundos
+  descripcion     String   @default("")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("config_tmo_linea")
+}
+
+model MetadataCarga {
+  id                     String   @id @default("carga_actual")
+  fechaCarga             String   @map("fecha_carga")
+  fechaCargaTs           BigInt   @map("fecha_carga_ts")
+  totalEncuestas         Int      @map("total_encuestas")
+  totalAsesoresHC        Int      @map("total_asesores_hc")
+  archivoHCNombre        String   @map("archivo_hc_nombre")
+  archivoQualtricsNombre String   @map("archivo_qualtrics_nombre")
+  cargadoPor             String   @map("cargado_por")
+  cargadoPorUid          String   @map("cargado_por_uid")
+  escrituraDiferencial   String?  @map("escritura_diferencial") @db.Text
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  @@map("metadata_carga")
+}
+
+model AnalisisAlerta {
+  encuestaId String   @id @map("encuesta_id")
+  agresivo   Boolean  @default(false)
+  razon      String   @default("") @db.Text
+  severidad  String   @default("leve")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("analisis_alertas")
+}
+
+// ============================================================
+// Sistema ATC (gamificación)
+// ============================================================
+
+model WalletATC {
+  loginNormalizado  String   @id @map("login_normalizado")
+  nombre            String   @default("")
+  saldo             Int      @default(0)
+  semanaActual      String   @default("") @map("semana_actual")
+  stats             String   @default("{}")
+  rachaActual       Int      @default(0) @map("racha_actual")
+  ultimaPromocionTs BigInt?  @map("ultima_promocion_ts")
+  metricasSemanales String   @default("[]") @map("metricas_semanales")
+  actualizado       String   @default("")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@index([loginNormalizado])
+  @@index([actualizado])
+  @@map("atc_wallets")
+}
+
+model TransaccionATC {
+  id               String   @id
+  loginNormalizado String   @map("login_normalizado")
+  tipo             String
+  monto            Int
+  descripcion      String   @default("") @db.Text
+  encuestaId       String?  @map("encuesta_id")
+  semanaISO        String   @map("semana_iso")
+  fecha            String
+  creado           String?
+  procesadoPor     String?  @map("procesado_por")
+  // v3.1.0: saldo anterior y nuevo para auditoría completa
+  saldoAnterior    Int?     @map("saldo_anterior")
+  saldoNuevo       Int?     @map("saldo_nuevo")
+  // v3.1.0: IP de origen para auditoría
+  ipOrigen         String?  @map("ip_origen")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([loginNormalizado])
+  @@index([tipo])
+  @@index([semanaISO])
+  @@index([creado])
+  @@index([encuestaId])
+  @@map("atc_transacciones")
+}
+
+model PremioATC {
+  id             String   @id
+  nombre         String
+  descripcion    String   @default("") @db.Text
+  costoATC       Int      @map("costo_atc")
+  categoria      String   @default("General")
+  emoji          String   @default("")
+  stock          Int      @default(-1)
+  umbralDiario   Int      @default(0) @map("umbral_diario")
+  umbralSemanal  Int      @default(0) @map("umbral_semanal")
+  autoAprobacion Boolean  @default(false) @map("auto_aprobacion")
+  area           String   @default("ambas") @map("area")
+  // requisito de TMO máximo (en segundos) para poder canjear el premio.
+  tmoMaximoRequerido Float? @map("tmo_maximo_requerido")
+  lineaRequerida     String? @map("linea_requerida")
+  imagenUrl          String? @map("imagen_url")
+  // v3.0.4: Duración del premio y límite de reclamos por asesor
+  duracionTipo     String?  @map("duracion_tipo")
+  duracionValor    Int      @default(0) @map("duracion_valor")
+  maxReclamosPorAsesor Int  @default(0) @map("max_reclamos_por_asesor")
+  // v3.0.7: Canje por racha
+  canjePorRacha    Boolean  @default(false) @map("canje_por_racha")
+  promotoresRequeridosRacha Int @default(3) @map("promotores_requeridos_racha")
+  // v3.0.7: Tipo de canje: 'monedas' | 'racha' | 'ambas'
+  tipoCanje        String   @default("monedas") @map("tipo_canje")
+  activo         Boolean  @default(true)
+  creado         String
+  actualizado    String?
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([activo])
+  @@index([categoria])
+  @@index([actualizado])
+  @@index([area])
+  @@map("atc_premios")
+}
+
+model CanjeATC {
+  id               String   @id
+  loginNormalizado String   @map("login_normalizado")
+  nombreAsesor     String   @default("") @map("nombre_asesor")
+  premioId         String   @map("premio_id")
+  premioNombre     String   @default("") @map("premio_nombre")
+  premioEmoji      String   @default("") @map("premio_emoji")
+  costoATC         Int      @map("costo_atc")
+  estado           String   @default("pendiente")
+  solicitado       String
+  actualizado      String?
+  resuelto         String?
+  resueltoPor      String?  @map("resuelto_por")
+  comentario       String?  @db.Text
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@index([loginNormalizado])
+  @@index([estado])
+  @@index([actualizado])
+  @@index([premioId])
+  @@map("atc_canjes")
+}
+
+model ApelacionATC {
+  id                    String   @id
+  loginNormalizado      String   @map("login_normalizado")
+  nombreAsesor          String   @default("") @map("nombre_asesor")
+  encuestaId            String   @map("encuesta_id")
+  motivo                String   @db.Text
+  clasificacionOriginal String   @default("indeterminado") @map("clasificacion_original")
+  encuestaScore         Int?     @map("encuesta_score")
+  encuestaRazon         String?  @map("encuesta_razon") @db.Text
+  encuestaComentario    String?  @map("encuesta_comentario") @db.Text
+  encuestaFecha         String?  @map("encuesta_fecha")
+  estado                String   @default("pendiente")
+  creado                String
+  actualizado           String?
+  resuelto              String?
+  resueltoPor           String?  @map("resuelto_por")
+  respuesta             String?  @db.Text
+  puntosAplicados       Int?     @map("puntos_aplicados")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@index([loginNormalizado])
+  @@index([estado])
+  @@index([actualizado])
+  @@index([encuestaId])
+  @@map("atc_apelaciones")
+}
+
+model NotificacionATC {
+  id        String   @id
+  tipo      String
+  titulo    String
+  mensaje   String   @db.Text
+  paraLogin String?  @map("para_login")
+  paraAdmin Boolean? @map("para_admin")
+  leida     Boolean  @default(false)
+  creado    String
+  data      String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([paraLogin])
+  @@index([paraAdmin])
+  @@index([leida])
+  @@index([creado])
+  @@map("atc_notificaciones")
+}
+
+model ConfigATC {
+  id                      String   @id @default("global")
+  sistemaATCActivo        Boolean  @default(true) @map("sistema_atc_activo")
+  saldoInicial            Int      @default(50) @map("saldo_inicial")
+  puntosPromotor          Int      @default(1) @map("puntos_promotor")
+  puntosPromotorRacha     Int      @default(2) @map("puntos_promotor_racha")
+  puntosPasivo            Int      @default(0) @map("puntos_pasivo")
+  puntosDetractor         Int      @default(-1) @map("puntos_detractor") // Unificado (sin distinción asesor/servicio)
+  rachaVentanaMinutos     Int      @default(60) @map("racha_ventana_minutos")
+  diaReinicioSemana       Int      @default(0) @map("dia_reinicio_semana")
+  horaReinicio            Int      @default(23) @map("hora_reinicio")
+  minutoReinicio          Int      @default(59) @map("minuto_reinicio")
+  ultimaSemanaReiniciada  String?  @map("ultima_semana_reiniciada")
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  @@map("atc_config")
+}
+
+model BeaconATC {
+  id        String   @id @default("beacon")
+  ts        String   @default("")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("atc_sync")
+}
+
+// ============================================================
+// Usuarios y permisos (auth + perfil social)
+// ============================================================
+
+model User {
+  id                  String    @id
+  username            String    @unique
+  passwordHash        String    @map("password_hash")
+  name                String    @default("")
+  role                String    @default("ASESOR")
+  area                String    @default("digital")
+  documento           String    @default("")
+  email               String?
+  loginNormalizado    String    @default("") @map("login_normalizado")
+  activo              Boolean   @default(true)
+  avatarUrl           String?   @map("avatar_url")
+  bio                 String?
+  debeCambiarPassword Boolean   @default(false) @map("debe_cambiar_password")
+  ultimoIngreso       DateTime? @map("ultimo_ingreso")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  @@index([role])
+  @@index([loginNormalizado])
+  @@index([documento])
+  @@index([email])
+  @@map("users")
+}
+
+model UsuarioLogro {
+  id               String   @id
+  usuarioId        String?  @map("user_id")
+  logroId          String?  @map("logro_id")
+  logroNombre      String?  @map("logro_nombre")
+  logroEmoji       String   @default("") @map("logro_emoji")
+  logroDescripcion String   @default("") @map("logro_descripcion")
+  puntosRecompensa Int      @default(0) @map("puntos_recompensa")
+  otorgado         String?  @map("otorgado_en")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@unique([usuarioId, logroId])
+  @@index([usuarioId])
+  @@index([logroId])
+  @@map("usuario_logros")
+}
+
+// Definición de logros disponibles
+model Logro {
+  id               String   @id
+  clave            String?  @unique
+  nombre           String
+  descripcion      String   @default("") @db.Text
+  emoji            String   @default("")
+  categoria        String   @default("general")
+  puntosRecompensa Int      @default(0) @map("puntos_recompensa")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@map("logros")
+}
+
+// ============================================================
+// Archivos subidos (avatares, imágenes de premios)
+// ============================================================
+model ArchivoSubido {
+  id           String   @id
+  tipo         String   // "avatar" | "premio" | "general"
+  ownerId      String?  @map("owner_id") // user id o premio id
+  nombre       String   @map("nombre_original")
+  mime         String   @default("image/png")
+  size         Int      @default(0)
+  data         Bytes    // Prisma infiere BYTEA automáticamente para PostgreSQL
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([tipo])
+  @@index([ownerId])
+  @@map("archivos_subidos")
+}
+
+// ============================================================
+// v3.0.4 — Configuración de reinicio de monedas (ATC)
+// ============================================================
+model ConfigReinicioMoneda {
+  id              String   @id @default("global")
+  // Tipo de reinicio: 'dia' | 'semana' | 'mes'
+  tipo            String   @default("semana")
+  // Valor del reinicio (ej: 50 ATC)
+  valor           Int      @default(50)
+  // Día de la semana (0=domingo, 6=sabado) para reinicio semanal
+  diaSemana       Int      @default(0) @map("dia_semana")
+  // Hora del reinicio (0-23)
+  hora            Int      @default(0)
+  // Día del mes (1-31) para reinicio mensual
+  diaMes          Int      @default(1) @map("dia_mes")
+  // Si true, el reinicio está activo
+  activo          Boolean  @default(true)
+  // Última vez que se ejecutó el reinicio (ISO timestamp)
+  ultimoReinicio  String?  @map("ultimo_reinicio")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("config_reinicio_moneda")
+}
+
+// ============================================================
+// v3.0.4 — Formularios de aprendizaje
+// ============================================================
+model Formulario {
+  id              String   @id
+  titulo          String
+  descripcion     String   @default("") @db.Text
+  categoria       String   @default("General") // ej: "Producto", "Soft Skills", "Proceso"
+  // Diseño del formulario: 'clasico' | 'tarjetas' | 'quiz' | 'encuesta'
+  diseño          String   @default("clasico")
+  // Cuántas veces un asesor puede responder el mismo formulario (0 = ilimitado)
+  maxIntentos     Int      @default(1) @map("max_intentos")
+  // ATC que se otorga por responder correctamente
+  atcPorRespuesta Int      @default(1) @map("atc_por_respuesta")
+  // ATC bonus por completar todo el formulario
+  atcBonus        Int      @default(5) @map("atc_bonus")
+  // Si true, el formulario está activo
+  activo          Boolean  @default(true)
+  // Imagen del formulario (opcional)
+  imagenUrl       String?  @map("imagen_url")
+  // Asignación: 'todos' | 'asesor' | 'area' | 'linea'
+  asignacionTipo  String   @default("todos") @map("asignacion_tipo")
+  // Valor de asignación (username, area, o linea según asignacionTipo)
+  asignacionValor String?  @map("asignacion_valor")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  // Relación con preguntas
+  preguntas       PreguntaFormulario[]
+
+  @@index([activo])
+  @@index([categoria])
+  @@index([asignacionTipo])
+  @@map("formularios")
+}
+
+model PreguntaFormulario {
+  id              String   @id
+  formularioId    String   @map("formulario_id")
+  formulario      Formulario @relation(fields: [formularioId], references: [id], onDelete: Cascade)
+  // Tipo de pregunta: 'opcion_multiple' | 'verdadero_falso' | 'texto'
+  tipo            String   @default("opcion_multiple")
+  // Enunciado de la pregunta
+  enunciado       String   @db.Text
+  // Opciones de respuesta (JSON array: ["Opción 1", "Opción 2", ...])
+  opciones        String   @default("[]")
+  // Índice de la respuesta correcta (0-based) para opcion_multiple
+  respuestaCorrecta Int    @default(0) @map("respuesta_correcta")
+  // Para verdadero_falso: true/false
+  esVerdadero     Boolean? @map("es_verdadero")
+  // Para texto: respuesta esperada
+  respuestaTexto  String?  @map("respuesta_texto") @db.Text
+  // Explicación que se muestra después de responder
+  explicacion     String   @default("") @db.Text
+  // Imagen de la pregunta (opcional)
+  imagenUrl       String?  @map("imagen_url")
+  orden           Int      @default(0)
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([formularioId])
+  @@map("preguntas_formulario")
+}
+
+model RespuestaFormulario {
+  id              String   @id
+  formularioId    String   @map("formulario_id")
+  preguntaId      String   @map("pregunta_id")
+  // Username del asesor que respondió
+  loginNormalizado String  @map("login_normalizado")
+  // Respuesta del asesor
+  respuesta       String   @db.Text
+  // Si la respuesta fue correcta
+  correcta        Boolean  @default(false)
+  // ATC otorgado por esta respuesta
+  atcOtorgado     Int      @default(0) @map("atc_otorgado")
+  // Intento (1, 2, 3...) si el formulario permite múltiples intentos
+  intento         Int      @default(1)
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([formularioId])
+  @@index([loginNormalizado])
+  @@index([preguntaId])
+  @@map("respuestas_formulario")
+}
+
+// ============================================================
+// v3.0.4 — Juegos (zona de juegos para asesores)
+// ============================================================
+model PartidaJuego {
+  id              String   @id
+  // Tipo de juego: 'culebrita' | 'breakout' | 'sudoku' | 'solitario'
+  juego           String
+  // Username del asesor
+  loginNormalizado String  @map("login_normalizado")
+  // Puntuación obtenida
+  puntaje         Int      @default(0)
+  // Nivel alcanzado
+  nivel           Int      @default(1)
+  // Duración de la partida en segundos
+  duracionSeg     Int      @default(0) @map("duracion_seg")
+  // Si ganó o perdió
+  ganado          Boolean  @default(false)
+  // ATC ganado en esta partida
+  atcGanado       Int      @default(0) @map("atc_ganado")
+  // Datos adicionales (JSON: configuración, modo, dificultad, etc.)
+  datos           String   @default("{}")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([juego])
+  @@index([loginNormalizado])
+  @@index([createdAt])
+  @@map("partidas_juego")
+}
+
+// ============================================================
+// v3.0.5 — Auditoría de acciones
+// ============================================================
+model AuditLog {
+  id           String   @id @default("")
+  userId       String?  @map("user_id")
+  username     String
+  accion       String   // 'create' | 'update' | 'delete' | 'login' | 'logout' | 'upload' | 'canje' | 'config'
+  tabla        String?  // tabla afectada
+  registroId   String?  @map("registro_id")
+  descripcion  String   @default("") @db.Text
+  ipOrigen     String?  @map("ip_origen")
+  userAgent    String?  @map("user_agent")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([username])
+  @@index([accion])
+  @@index([createdAt])
+  @@map("audit_log")
+}
+
+// ============================================================
+// v3.0.5 — Torneos y gamificación avanzada
+// ============================================================
+model Torneo {
+  id           String   @id
+  nombre       String
+  descripcion  String   @default("") @db.Text
+  // Tipo: 'tnps' | 'atc' | 'promotores' | 'rachas'
+  tipo         String   @default("tnps")
+  // Área: 'digital' | 'telefonico' | 'ambas'
+  area         String   @default("ambas")
+  fechaInicio  String   @map("fecha_inicio")
+  fechaFin     String   @map("fecha_fin")
+  activo       Boolean  @default(true)
+  // Premio para el ganador (descripción)
+  premio       String   @default("") @db.Text
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([activo])
+  @@index([tipo])
+  @@index([area])
+  @@map("torneos")
+}
+
+model StreakAsesor {
+  id              String   @id
+  loginNormalizado String  @map("login_normalizado")
+  // Tipo de racha: 'promotores_dia' | 'sin_detractores_semana' | 'login_diario'
+  tipo            String   @default("promotores_dia")
+  // Conteo actual de la racha
+  contador        Int      @default(0)
+  // Mejor racha histórica
+  mejorRacha      Int      @default(0) @map("mejor_racha")
+  // Última fecha de la racha (YYYY-MM-DD)
+  ultimaFecha     String   @map("ultima_fecha")
+  // ATC bonus otorgados por racha
+  atcBonus        Int      @default(0) @map("atc_bonus")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@unique([loginNormalizado, tipo])
+  @@index([loginNormalizado])
+  @@index([tipo])
+  @@map("streaks_asesor")
+}
+
+// ============================================================
+// v3.0.6 — Preguntas de seguridad para restablecer contraseña
+// ============================================================
+model PreguntaSeguridad {
+  id              String   @id
+  userId          String   @map("user_id")
+  // La pregunta (texto libre seleccionado de opciones predeterminadas)
+  pregunta        String   @db.Text
+  // Respuesta (hasheada para no guardarla en texto plano)
+  respuestaHash   String   @map("respuesta_hash")
+  // Orden (1 o 2 — el asesor debe configurar 2 preguntas)
+  orden           Int      @default(1)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, orden])
+  @@index([userId])
+  @@map("preguntas_seguridad")
+}
+
+// ============================================================
+// v3.0.7 — Configuración de juegos
+// ============================================================
+model ConfigJuego {
+  id              String   @id
+  juego           String   @unique // 'culebrita' | 'breakout' | 'sudoku' | 'solitario'
+  activo          Boolean  @default(true)
+  // Áreas activas: 'ambas' | 'digital' | 'telefonico'
+  areaActiva      String   @default("ambas") @map("area_activa")
+  // ATC por partida ganada
+  atcPorPartida   Int      @default(1) @map("atc_por_partida")
+  // ATC máximo por día por asesor
+  atcMaximoDiario Int      @default(10) @map("atc_maximo_diario")
+  descripcion     String   @default("")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("config_juegos")
+}
+
+// ============================================================
+// v3.2.0 — Métricas de Adherencia (Adherencia Noviembre.xlsx)
+// ============================================================
+model Adherencia {
+  id        String   @id @default("current")
+  data      String   @default("{}")
+  savedAtTs BigInt?  @map("saved_at_ts")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@map("adherencia")
+}
+
+// ============================================================
+// v3.4.2 — Horas Robot y Bitácora (persistencia en BD)
+// Mismo patrón que Adherencia: una sola fila con id='current'
+// cuyo campo `data` contiene el snapshot JSON completo.
+// ============================================================
+model HorasRobot {
+  id        String   @id @default("current")
+  data      String   @default("{}")
+  savedAtTs BigInt?  @map("saved_at_ts")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@map("horas_robot")
+}
+
+model Bitacora {
+  id        String   @id @default("current")
+  data      String   @default("{}")
+  savedAtTs BigInt?  @map("saved_at_ts")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@map("bitacora")
+}
+
+// ============================================================
+// v3.3.0 — Nómina y Gestión Operativa
+// ============================================================
+model Novedad {
+  id           String   @id
+  documento    String
+  nombre       String   @default("")
+  fecha        String
+  horaInicio   String
+  horaFin      String
+  duracion     Int      @default(0)
+  tipo         String   @default("OTRO")
+  ticket       String?
+  descripcion  String   @default("")
+  evidenciaUrl String?
+  estado       String   @default("pendiente")
+  procesadoPor String?
+  respuesta    String?
+  created_at   DateTime @default(now()) @map("created_at")
+  updated_at   DateTime @updatedAt @map("updated_at")
+
+  @@index([documento])
+  @@index([fecha])
+  @@index([estado])
+  @@map("novedades")
+}
+
+model SugerenciaTurno {
+  id              String   @id
+  documento       String
+  nombre          String   @default("")
+  turnoSugerido   String
+  descanso        String
+  tipoRestriccion String   @default("OTROS")
+  prioridad       String   @default("PRIORIDAD TURNO")
+  comentario      String   @default("")
+  semana          String
+  estado          String   @default("pendiente")
+  created_at      DateTime @default(now()) @map("created_at")
+  updated_at      DateTime @updatedAt @map("updated_at")
+
+  @@index([documento])
+  @@index([semana])
+  @@index([estado])
+  @@map("sugerencias_turno")
+}
+
+model NominaDiaria {
+  id               String   @id
+  documento        String
+  nombre           String   @default("")
+  fecha            String
+  horasProgramadas Float    @default(0)
+  horasRobot       Float    @default(0)
+  tiempoFaltante   Float    @default(0)
+  tiempoAjustado   Float    @default(0)
+  valorMonetario   Float    @default(0)
+  estado           String   @default("pendiente")
+  procesadoPor     String?
+  created_at       DateTime @default(now()) @map("created_at")
+  updated_at       DateTime @updatedAt @map("updated_at")
+
+  @@unique([documento, fecha])
+  @@index([documento])
+  @@index([fecha])
+  @@map("nomina_diaria")
+}
